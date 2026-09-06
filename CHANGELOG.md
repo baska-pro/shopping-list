@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased]
+
+### Changed
+- README now displays the actual application screenshots from `assets/screenshoot/`.
+- Screenshot documentation now lists the current media assets and usage guidance.
+
 ## [2.1.0] - 2026-09-06
 
 ### Added
