@@ -31,6 +31,8 @@ bun run build
 - Perubahan cloud sync harus tetap kompatibel dengan model keamanan di `SECURITY.md` dan schema terbaru.
 - Screenshot publik disimpan di `assets/screenshoot/` dan harus bebas informasi sensitif.
 - Jangan mengubah lockfile tanpa perubahan dependency yang memang diperlukan.
+- Seluruh penggunaan, modifikasi, dan distribusi source tetap tunduk pada **BASKA-PRO PERSONAL USE LICENSE Version 1.0** di file `LICENSE`.
+- Membuka pull request tidak memberikan hak redistribusi, komersialisasi, rebranding, atau penggunaan di luar izin yang tercantum dalam `LICENSE`.
 
 ## Pull request checklist
 
@@ -39,3 +41,4 @@ bun run build
 - [ ] `bun run build` berhasil.
 - [ ] Tidak ada credential atau data pribadi pada diff.
 - [ ] Dokumentasi diperbarui jika perilaku pengguna berubah.
+- [ ] Perubahan mematuhi ketentuan pada `LICENSE`.

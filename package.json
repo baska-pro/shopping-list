@@ -4,7 +4,7 @@
   "version": "2.1.0",
   "description": "Offline-first smart shopping list PWA with recipes, voice input, price history, Google Sheets sync, and Supabase sync.",
   "type": "module",
-  "license": "MIT",
+  "license": "SEE LICENSE IN LICENSE",
   "repository": {
     "type": "git",
     "url": "https://github.com/baska-pro/shopping-list.git"
