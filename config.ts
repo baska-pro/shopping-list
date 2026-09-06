@@ -1,11 +1,11 @@
 /**
- * Konfigurasi Global Aplikasi Belanjaan
+ * Konfigurasi global aplikasi Belanjaan.
  */
 
 export const APP_CONFIG = {
   name: 'Belanjaan',
   fullName: 'Belanjaan - Smart Shopping List',
-  version: '2.0.0',
+  version: '2.1.0',
   storageKeys: {
     shoppingList: 'shoppingList',
     shoppingHistory: 'shoppingHistory',

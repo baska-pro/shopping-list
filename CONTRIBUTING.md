@@ -1,30 +1,41 @@
-# Panduan Kontribusi (Contributing Guide)
+# Contributing to Belanjaan
 
-Terima kasih atas minat Anda untuk berkontribusi pada **Belanjaan**! Kami sangat menyambut kontribusi perbaikan bug, penambahan fitur, dan penyempurnaan dokumentasi.
+Kontribusi bug fix, peningkatan fitur, dokumentasi, dan perbaikan aksesibilitas diterima melalui pull request.
 
-## Cara Berkontribusi
+## Development workflow
 
-1. **Fork** repositori ini ke akun GitHub Anda.
-2. Buat branch baru untuk fitur Anda:
-   ```bash
-   git checkout -b fitur/nama-fitur-baru
-   ```
-3. Lakukan perubahan kode dan pastikan standar tipe data terpenuhi:
-   ```bash
-   npm run typecheck
-   npm run build
-   ```
-4. Commit perubahan Anda dengan pesan yang jelas:
-   ```bash
-   git commit -m "Menambahkan fitur X: penjelasan singkat"
-   ```
-5. Push ke branch Anda:
-   ```bash
-   git push origin fitur/nama-fitur-baru
-   ```
-6. Buat **Pull Request** ke branch `main` repositori utama.
+1. Fork atau clone repository.
+2. Buat branch dari `main`.
+3. Install dependency menggunakan lockfile yang sudah dikomit:
 
-## Konvensi Kode
-- Gunakan TypeScript untuk keamanan tipe data.
-- Gunakan Tailwind CSS untuk penataan gaya (styling).
-- Pastikan tidak ada dependensi atau file kunci rahasia (`.env`) yang ter-commit.
+```bash
+bun install --frozen-lockfile
+```
+
+4. Jalankan pemeriksaan sebelum commit:
+
+```bash
+bun run typecheck
+bun run build
+```
+
+5. Commit dengan pesan yang jelas dan terfokus.
+6. Buka pull request ke `main`.
+
+## Guidelines
+
+- Gunakan TypeScript untuk perubahan source aplikasi.
+- Pertahankan perilaku offline-first dan responsivitas mobile.
+- Jangan commit `.env`, credential, token, private URL, Room Key, atau data pengguna.
+- Jangan menambahkan administrative cloud credential ke frontend.
+- Perubahan cloud sync harus tetap kompatibel dengan model keamanan di `SECURITY.md` dan schema terbaru.
+- Screenshot publik disimpan di `assets/screenshoot/` dan harus bebas informasi sensitif.
+- Jangan mengubah lockfile tanpa perubahan dependency yang memang diperlukan.
+
+## Pull request checklist
+
+- [ ] `bun install --frozen-lockfile` berhasil.
+- [ ] `bun run typecheck` berhasil.
+- [ ] `bun run build` berhasil.
+- [ ] Tidak ada credential atau data pribadi pada diff.
+- [ ] Dokumentasi diperbarui jika perilaku pengguna berubah.

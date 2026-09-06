@@ -1,118 +1,76 @@
 /**
- * Belanjaan - Google Apps Script (code.gs)
- * Web App Backend untuk Sinkronisasi Multi-Device Google Sheets
- * 
- * PANDUAN DEPLOYMENT:
- * 1. Buka https://sheets.new untuk membuat Google Spreadsheet baru.
- * 2. Beri nama Spreadsheet, misalnya "Belanjaan - Cloud Sync Database".
- * 3. Buka menu: Ekstensi (Extensions) > Apps Script.
- * 4. Hapus seluruh kode bawaan, lalu tempel (paste) seluruh kode di bawah ini.
- * 5. Klik tombol "Simpan" (ikon disket).
- * 6. Klik tombol biru "Terapkan" (Deploy) > "Penerapan Baru" (New deployment).
- * 7. Pilih Jenis: "Aplikasi Web" (Web app).
- * 8. Konfigurasi:
- *    - Deskripsi: Belanjaan Sync API v2.0
- *    - Jalankan sebagai (Execute as): Saya (email Anda)
- *    - Siapa yang memiliki akses (Who has access): Siapa saja (Anyone)
- * 9. Klik "Terapkan" (Deploy) dan berikan otorisasi izin Google saat diminta.
- * 10. Salin "URL Aplikasi Web" (akhiran /exec) dan tempelkan ke aplikasi Belanjaan
- *     di menu "Sinkronisasi Cloud" > "Google Sheets".
+ * Belanjaan - Google Apps Script backend
+ * Version 2.1.0
+ *
+ * Deployment:
+ * 1. Create a Google Spreadsheet.
+ * 2. Extensions > Apps Script.
+ * 3. Paste this file into Code.gs.
+ * 4. Optional but recommended: Project Settings > Script Properties,
+ *    add BELANJAAN_SYNC_TOKEN with a long random value.
+ * 5. Deploy > New deployment > Web app.
+ * 6. Execute as: Me. Access: Anyone.
+ * 7. Paste the /exec URL into Belanjaan and use the same token when configured.
  */
 
-// Konstanta Nama Sheet
 const SHEET_RAW = 'SYNC_PAYLOAD';
 const SHEET_ACTIVE = 'DAFTAR_AKTIF';
-const SHEET_HISTORY = 'RIWAYAT_BELANJA';
 const SHEET_PRICES = 'DATABASE_HARGA';
+const TOKEN_PROPERTY = 'BELANJAAN_SYNC_TOKEN';
 
-/**
- * Handle HTTP GET Request
- */
 function doGet(e) {
   try {
     const params = (e && e.parameter) || {};
-    const action = params.action || 'get';
-    const roomKey = params.roomKey || params.syncRoomKey || 'default';
-    const token = params.token || '';
+    const action = params.action || 'ping';
 
-    if (action === 'ping') {
-      return jsonResponse({
-        status: 'success',
-        message: 'Google Apps Script Belanjaan aktif dan siap digunakan!',
-        timestamp: new Date().toISOString()
-      });
-    }
-
-    if (action === 'get') {
-      const data = getStoredPayload(roomKey);
-      return jsonResponse({
-        status: 'success',
-        roomKey: roomKey,
-        data: data,
-        timestamp: new Date().toISOString()
-      });
+    if (action !== 'ping') {
+      return jsonResponse({ status: 'error', message: 'Gunakan POST untuk operasi data.' });
     }
 
     return jsonResponse({
-      status: 'error',
-      message: 'Action tidak dikenal. Gunakan ?action=ping atau ?action=get&roomKey=...'
-    }, 400);
-
+      status: 'success',
+      message: 'Belanjaan Sync API aktif.',
+      version: '2.1.0',
+      protected: Boolean(getConfiguredToken_()),
+      timestamp: new Date().toISOString()
+    });
   } catch (error) {
-    return jsonResponse({
-      status: 'error',
-      message: error.toString()
-    }, 500);
+    return jsonResponse({ status: 'error', message: String(error) });
   }
 }
 
-/**
- * Handle HTTP POST Request
- */
 function doPost(e) {
   try {
-    let body = {};
-    if (e && e.postData && e.postData.contents) {
-      try {
-        body = JSON.parse(e.postData.contents);
-      } catch (parseErr) {
-        body = e.parameter || {};
-      }
-    } else if (e && e.parameter) {
-      body = e.parameter;
+    const body = parseBody_(e);
+    const action = body.action || 'save';
+    const roomKey = String(body.roomKey || body.syncRoomKey || '').trim();
+    const token = String(body.token || '').trim();
+
+    if (!isAuthorized_(token)) {
+      return jsonResponse({ status: 'error', message: 'Token sinkronisasi tidak valid.' });
     }
 
-    const action = body.action || 'save';
-    const roomKey = body.roomKey || body.syncRoomKey || 'default';
-    const payload = body.payload || body.data;
+    if (!roomKey || roomKey.length < 8) {
+      return jsonResponse({ status: 'error', message: 'Room Key minimal 8 karakter.' });
+    }
 
     if (action === 'get') {
-      const data = getStoredPayload(roomKey);
       return jsonResponse({
         status: 'success',
         roomKey: roomKey,
-        data: data,
+        data: getStoredPayload_(roomKey),
         timestamp: new Date().toISOString()
       });
     }
 
     if (action === 'save' || action === 'sync') {
+      const payload = body.payload || body.data;
       if (!payload) {
-        return jsonResponse({
-          status: 'error',
-          message: 'Payload data kosong.'
-        }, 400);
+        return jsonResponse({ status: 'error', message: 'Payload data kosong.' });
       }
 
-      // 1. Simpan raw JSON ke sheet penyimpanan
-      savePayloadToSheet(roomKey, payload);
-
-      // 2. Format ulang ke sheet manusia (human-readable)
-      try {
-        updateHumanReadableSheets(payload);
-      } catch (renderErr) {
-        Logger.log('Gagal memperbarui sheet human-readable: ' + renderErr.toString());
-      }
+      savePayloadToSheet_(roomKey, payload);
+      updateHumanReadableSheets_(payload);
 
       return jsonResponse({
         status: 'success',
@@ -122,66 +80,79 @@ function doPost(e) {
       });
     }
 
-    return jsonResponse({
-      status: 'error',
-      message: 'Action POST tidak valid.'
-    }, 400);
-
+    return jsonResponse({ status: 'error', message: 'Action POST tidak valid.' });
   } catch (error) {
-    return jsonResponse({
-      status: 'error',
-      message: error.toString()
-    }, 500);
+    return jsonResponse({ status: 'error', message: String(error) });
   }
 }
 
-/**
- * Menyimpan data payload JSON per roomKey
- */
-function savePayloadToSheet(roomKey, payload) {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  let sheet = ss.getSheetByName(SHEET_RAW);
-  if (!sheet) {
-    sheet = ss.insertSheet(SHEET_RAW);
-    sheet.appendRow(['Room_Key', 'Updated_At', 'Payload_JSON']);
-    sheet.setFrozenRows(1);
-    sheet.getRange('A1:C1').setFontWeight('bold').setBackground('#f3f4f6');
-  }
-
-  const data = sheet.getDataRange().getValues();
-  const jsonStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
-  const now = new Date().toISOString();
-
-  let rowIndex = -1;
-  for (let i = 1; i < data.length; i++) {
-    if (String(data[i][0]) === String(roomKey)) {
-      rowIndex = i + 1;
-      break;
+function parseBody_(e) {
+  if (e && e.postData && e.postData.contents) {
+    try {
+      return JSON.parse(e.postData.contents);
+    } catch (error) {
+      return e.parameter || {};
     }
   }
+  return (e && e.parameter) || {};
+}
 
-  if (rowIndex > 0) {
-    sheet.getRange(rowIndex, 2, 1, 2).setValues([[now, jsonStr]]);
-  } else {
-    sheet.appendRow([roomKey, now, jsonStr]);
+function getConfiguredToken_() {
+  return String(PropertiesService.getScriptProperties().getProperty(TOKEN_PROPERTY) || '').trim();
+}
+
+function isAuthorized_(providedToken) {
+  const expected = getConfiguredToken_();
+  if (!expected) return true;
+  return String(providedToken || '') === expected;
+}
+
+function savePayloadToSheet_(roomKey, payload) {
+  const lock = LockService.getScriptLock();
+  lock.waitLock(10000);
+  try {
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    let sheet = ss.getSheetByName(SHEET_RAW);
+    if (!sheet) {
+      sheet = ss.insertSheet(SHEET_RAW);
+      sheet.appendRow(['Room_Key', 'Updated_At', 'Payload_JSON']);
+      sheet.setFrozenRows(1);
+      sheet.getRange('A1:C1').setFontWeight('bold').setBackground('#f3f4f6');
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const jsonStr = typeof payload === 'string' ? payload : JSON.stringify(payload);
+    const now = new Date().toISOString();
+    let rowIndex = -1;
+
+    for (let i = 1; i < data.length; i++) {
+      if (String(data[i][0]) === roomKey) {
+        rowIndex = i + 1;
+        break;
+      }
+    }
+
+    if (rowIndex > 0) {
+      sheet.getRange(rowIndex, 2, 1, 2).setValues([[now, jsonStr]]);
+    } else {
+      sheet.appendRow([roomKey, now, jsonStr]);
+    }
+  } finally {
+    lock.releaseLock();
   }
 }
 
-/**
- * Mengambil payload JSON tersimpan berdasarkan roomKey
- */
-function getStoredPayload(roomKey) {
+function getStoredPayload_(roomKey) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getSheetByName(SHEET_RAW);
   if (!sheet) return null;
 
   const data = sheet.getDataRange().getValues();
   for (let i = 1; i < data.length; i++) {
-    if (String(data[i][0]) === String(roomKey)) {
-      const jsonStr = data[i][2];
+    if (String(data[i][0]) === roomKey) {
       try {
-        return JSON.parse(jsonStr);
-      } catch (e) {
+        return JSON.parse(String(data[i][2] || 'null'));
+      } catch (error) {
         return null;
       }
     }
@@ -189,67 +160,49 @@ function getStoredPayload(roomKey) {
   return null;
 }
 
-/**
- * Update tab spreadsheet visual agar mudah dibaca & dicetak langsung oleh pengguna
- */
-function updateHumanReadableSheets(payload) {
+function updateHumanReadableSheets_(payload) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const data = typeof payload === 'string' ? JSON.parse(payload) : payload;
 
-  // 1. Tab Daftar Belanja Aktif
-  if (data.shoppingItems && Array.isArray(data.shoppingItems)) {
-    let actSheet = ss.getSheetByName(SHEET_ACTIVE);
-    if (!actSheet) {
-      actSheet = ss.insertSheet(SHEET_ACTIVE);
-    }
-    actSheet.clearContents();
-    actSheet.appendRow(['Status', 'Nama Barang', 'Jumlah', 'Satuan', 'Estimasi (Rp)', 'Harga Real (Rp)', 'Kategori / Tag', 'Catatan']);
-    actSheet.getRange('A1:H1').setFontWeight('bold').setBackground('#dcfce7');
-    actSheet.setFrozenRows(1);
+  if (Array.isArray(data.shoppingItems)) {
+    let sheet = ss.getSheetByName(SHEET_ACTIVE) || ss.insertSheet(SHEET_ACTIVE);
+    sheet.clearContents();
+    sheet.appendRow(['Status', 'Nama Barang', 'Jumlah', 'Satuan', 'Estimasi (Rp)', 'Harga Real (Rp)', 'Kategori / Tag', 'Catatan']);
+    sheet.getRange('A1:H1').setFontWeight('bold').setBackground('#dcfce7');
+    sheet.setFrozenRows(1);
 
-    const rows = data.shoppingItems.map(item => [
-      item.isChecked ? 'SELESAI' : 'BELUM',
-      item.name || '',
-      item.quantity !== null && item.quantity !== undefined ? item.quantity : '',
-      item.unit || '',
-      item.estimatedPrice || 0,
-      item.realPrice || 0,
-      item.groupTag || 'Lainnya',
-      item.note || ''
-    ]);
+    const rows = data.shoppingItems.map(function(item) {
+      return [
+        item.isChecked ? 'SELESAI' : 'BELUM',
+        item.name || '',
+        item.quantity !== null && item.quantity !== undefined ? item.quantity : '',
+        item.unit || '',
+        item.estimatedPrice || 0,
+        item.realPrice || 0,
+        item.groupTag || 'Lainnya',
+        item.note || ''
+      ];
+    });
 
-    if (rows.length > 0) {
-      actSheet.getRange(2, 1, rows.length, 8).setValues(rows);
-    }
+    if (rows.length) sheet.getRange(2, 1, rows.length, 8).setValues(rows);
   }
 
-  // 2. Tab Database Harga
   if (data.priceHistory && typeof data.priceHistory === 'object') {
-    let priceSheet = ss.getSheetByName(SHEET_PRICES);
-    if (!priceSheet) {
-      priceSheet = ss.insertSheet(SHEET_PRICES);
-    }
-    priceSheet.clearContents();
-    priceSheet.appendRow(['Nama Barang', 'Harga Terakhir Tercatat (Rp)']);
-    priceSheet.getRange('A1:B1').setFontWeight('bold').setBackground('#fef3c7');
-    priceSheet.setFrozenRows(1);
+    let sheet = ss.getSheetByName(SHEET_PRICES) || ss.insertSheet(SHEET_PRICES);
+    sheet.clearContents();
+    sheet.appendRow(['Nama Barang', 'Harga Terakhir Tercatat (Rp)']);
+    sheet.getRange('A1:B1').setFontWeight('bold').setBackground('#fef3c7');
+    sheet.setFrozenRows(1);
 
-    const priceRows = Object.keys(data.priceHistory).map(name => [
-      name,
-      data.priceHistory[name] || 0
-    ]);
-
-    if (priceRows.length > 0) {
-      priceSheet.getRange(2, 1, priceRows.length, 2).setValues(priceRows);
-    }
+    const rows = Object.keys(data.priceHistory).map(function(name) {
+      return [name, data.priceHistory[name] || 0];
+    });
+    if (rows.length) sheet.getRange(2, 1, rows.length, 2).setValues(rows);
   }
 }
 
-/**
- * Helper JSON Response dengan CORS
- */
-function jsonResponse(data, statusCode) {
-  const output = ContentService.createTextOutput(JSON.stringify(data));
-  output.setMimeType(ContentService.MimeType.JSON);
-  return output;
+function jsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
 }

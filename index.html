@@ -1,52 +1,29 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Shopping Books - Belanjaan Pintar</title>
-    <meta name="description" content="Aplikasi daftar belanja cerdas lengkap dengan input suara cepat, integrasi resep masakan Nusantara, mode offline PWA, dan kemudahan berbagi ke WhatsApp.">
-    <meta property="og:title" content="Shopping Books - Belanjaan Pintar">
-    <meta property="og:description" content="Aplikasi daftar belanja cerdas lengkap dengan input suara cepat, integrasi resep masakan Nusantara, mode offline PWA, dan kemudahan berbagi ke WhatsApp.">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="color-scheme" content="light">
+    <title>Belanjaan - Smart Shopping List</title>
+    <meta name="description" content="Aplikasi daftar belanja offline-first dengan input suara, resep Nusantara, riwayat harga, sinkronisasi cloud, dan berbagi WhatsApp.">
+    <meta name="application-name" content="Belanjaan">
+    <meta name="robots" content="index,follow">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Belanjaan - Smart Shopping List">
+    <meta property="og:description" content="Kelola daftar belanja dengan cepat, offline, dan sinkron di berbagai perangkat.">
     <meta name="theme-color" content="#16a34a">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="Belanjaan">
-    <link rel="icon" type="image/svg+xml" href="/icon.svg">
-    <link rel="apple-touch-icon" href="/icon.svg">
-    <!-- Tailwind CSS CDN -->
+    <link rel="icon" type="image/svg+xml" href="./icon.svg">
+    <link rel="apple-touch-icon" href="./icon.svg">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      /* Optional: Basic body styling to prevent content from touching edges */
-      body {
-        margin: 0;
-        font-family: sans-serif;
-        -webkit-font-smoothing: antialiased;
-        -moz-osx-font-smoothing: grayscale;
-      }
-      /* Ensure root element fills the viewport for better mobile experience */
-      #root {
-        min-height: 100vh;
-        display: flex;
-        flex-direction: column;
-      }
-    </style>
-<script type="importmap">
-{
-  "imports": {
-    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "react/": "https://aistudiocdn.com/react@^19.2.1/",
-    "react": "https://aistudiocdn.com/react@^19.2.1",
-    "html2canvas": "https://aistudiocdn.com/html2canvas@^1.4.1",
-    "uuid": "https://aistudiocdn.com/uuid@^13.0.0"
-  }
-}
-</script>
-<link rel="stylesheet" href="/index.css">
+    <link rel="stylesheet" href="./index.css">
 </head>
 <body>
-    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <noscript>Aplikasi ini membutuhkan JavaScript untuk berjalan.</noscript>
     <div id="root"></div>
-    <script type="module" src="/index.tsx"></script>
+    <script type="module" src="./index.tsx"></script>
 </body>
 </html>

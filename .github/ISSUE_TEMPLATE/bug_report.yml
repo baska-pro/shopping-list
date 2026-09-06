@@ -1,0 +1,37 @@
+name: Bug report
+description: Laporkan bug yang dapat direproduksi
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: Jangan sertakan token, Room Key, URL privat, atau data pribadi.
+  - type: textarea
+    id: problem
+    attributes:
+      label: Masalah
+      description: Jelaskan apa yang terjadi.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Langkah reproduksi
+      description: Tulis langkah yang konsisten untuk memunculkan bug.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Hasil yang diharapkan
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Browser / OS / perangkat
+      placeholder: Chrome 140 / Android 12
+  - type: input
+    id: version
+    attributes:
+      label: Versi aplikasi atau commit
