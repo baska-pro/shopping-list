@@ -1,13 +1,18 @@
 # Web App Screenshots
 
-Simpan tangkapan layar resmi aplikasi di folder ini.
+Folder ini menyimpan media resmi **Belanjaan / Shopping List** yang digunakan pada README, dokumentasi, release, dan materi publik proyek.
 
-Konvensi nama yang disarankan:
+## Media Saat Ini
 
-- `home-mobile.png`
-- `home-desktop.png`
-- `shopping-mode-mobile.png`
-- `recipes-mobile.png`
-- `cloud-sync.png`
+- `dashboard.jpg` — dashboard utama aplikasi.
+- `checklist.jpg` — mode checklist saat berbelanja.
+- `pilih_bahan.jpg` — pemilihan bahan untuk ditambahkan ke daftar.
+- `resep.jpg` — katalog resep Nusantara.
 
-Gunakan gambar aktual dari aplikasi, hindari data pribadi, token, URL rahasia, atau informasi akun pada screenshot.
+## Panduan
+
+- Gunakan screenshot aktual dari aplikasi.
+- Jangan menampilkan token, Room Key, URL privat, email, nomor telepon, atau data pribadi.
+- Gunakan nama file huruf kecil dan deskriptif.
+- Disarankan format `.jpg`, `.png`, atau `.webp`.
+- Jika menambah screenshot baru yang mewakili fitur utama, tambahkan juga ke galeri pada `README.md`.
