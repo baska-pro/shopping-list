@@ -1,7 +1,7 @@
 # Belanjaan / Shopping List
 
 [![CI](https://github.com/baska-pro/shopping-list/actions/workflows/ci.yml/badge.svg)](https://github.com/baska-pro/shopping-list/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
+[![License](https://img.shields.io/badge/License-BASKA--PRO%20Personal%20Use-blue.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-blue.svg)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.8-blue.svg)](https://www.typescriptlang.org/)
 [![Vite](https://img.shields.io/badge/Vite-6-purple.svg)](https://vite.dev/)
@@ -167,7 +167,7 @@ Ringkasnya:
 
 ## Kontribusi
 
-Lihat [CONTRIBUTING.md](CONTRIBUTING.md).
+Lihat [CONTRIBUTING.md](CONTRIBUTING.md). Kontribusi yang dikirim ke repository ini harus tetap mematuhi batas penggunaan dan distribusi pada file [LICENSE](LICENSE).
 
 ## Changelog
 
@@ -175,4 +175,8 @@ Lihat [CHANGELOG.md](CHANGELOG.md).
 
 ## Lisensi
 
-Dirilis menggunakan [MIT License](LICENSE).
+Proyek ini menggunakan **BASKA-PRO PERSONAL USE LICENSE Version 1.0**. Lisensi mengizinkan penggunaan, pengujian, pembelajaran, dan modifikasi untuk penggunaan pribadi, privat, dan non-komersial. Redistribusi, publikasi ulang, rebranding, penggunaan komersial, SaaS/hosted service, atau integrasi ke produk yang didistribusikan memerlukan izin tertulis terlebih dahulu dari pemegang hak cipta.
+
+Copyright (c) 2026 Lathif Baska. All Rights Reserved.
+
+Baca ketentuan lengkap pada [LICENSE](LICENSE).
