@@ -1,0 +1,8 @@
+{
+  "name": "Shopping Books",
+  "description": "Aplikasi daftar belanja cerdas lengkap dengan input suara cepat, integrasi resep masakan Nusantara, mode offline PWA, dan kemudahan berbagi ke WhatsApp.",
+  "requestFramePermissions": [
+    "microphone"
+  ],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

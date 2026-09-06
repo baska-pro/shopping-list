@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#16a34a" />
+      <stop offset="100%" stop-color="#0d9488" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <!-- Background with rounded corners (safe zone compliant) -->
+  <rect width="512" height="512" rx="110" fill="url(#bgGrad)" />
+  
+  <!-- Outer glowing accent ring -->
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#ffffff" stroke-opacity="0.15" stroke-width="8" />
+
+  <!-- Shopping Basket / Book Icon Graphics -->
+  <g filter="url(#shadow)" fill="#ffffff">
+    <!-- Basket Handle -->
+    <path d="M190 200 C 190 130, 322 130, 322 200" fill="none" stroke="#ffffff" stroke-width="26" stroke-linecap="round" />
+    
+    <!-- Basket Body -->
+    <path d="M130 200 L 382 200 C 395 200, 404 212, 400 225 L 360 380 C 356 395, 342 406, 326 406 L 186 406 C 170 406, 156 395, 152 380 L 112 225 C 108 212, 117 200, 130 200 Z" />
+    
+    <!-- Basket Grid Weave Details (Subtle Cutouts) -->
+    <path d="M170 230 L 195 380 M 230 230 L 245 380 M 282 230 L 267 380 M 342 230 L 317 380" stroke="#16a34a" stroke-width="8" stroke-linecap="round" fill="none" />
+    <path d="M140 280 L 372 280 M 150 330 L 362 330" stroke="#16a34a" stroke-width="8" stroke-linecap="round" fill="none" />
+    
+    <!-- Fresh Carrot / Greenery sticking out -->
+    <circle cx="340" cy="165" r="22" fill="#fbbf24" />
+    <path d="M340 145 C 335 110, 370 100, 360 130" stroke="#4ade80" stroke-width="12" stroke-linecap="round" fill="none" />
+    <circle cx="172" cy="175" r="18" fill="#f87171" />
+  </g>
+</svg>
