@@ -1,0 +1,34 @@
+name: Temporary Release Bundle
+
+on:
+  push:
+    branches: [fix/public-ready-v2.1.0]
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Build source archive
+        run: |
+          mkdir -p release
+          zip -r release/shopping-list-v2.1.0.zip . \
+            -x '.git/*' \
+               '.github/workflows/temp-release-bundle.yml' \
+               'release/*'
+          sha256sum release/shopping-list-v2.1.0.zip > release/SHA256SUMS.txt
+
+      - name: Upload source bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: shopping-list-v2.1.0
+          path: |
+            release/shopping-list-v2.1.0.zip
+            release/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 7
