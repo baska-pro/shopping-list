@@ -30,6 +30,92 @@ jobs:
           find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
           cp -a /tmp/source/shopping-list-main/. .
 
+      - name: Apply final TypeScript fixes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import json
+
+          p = Path('package.json')
+          data = json.loads(p.read_text())
+          dev = data.setdefault('devDependencies', {})
+          dev['@types/react'] = '^19.2.0'
+          dev['@types/react-dom'] = '^19.2.0'
+          p.write_text(json.dumps(data, indent=2, ensure_ascii=False) + '\n')
+
+          p = Path('components/ErrorBoundary.tsx')
+          s = p.read_text()
+          s = s.replace(
+              'interface ErrorBoundaryState {',
+              'interface ErrorBoundaryProps {\n  children?: React.ReactNode;\n}\n\ninterface ErrorBoundaryState {'
+          )
+          s = s.replace(
+              'class ErrorBoundary extends React.Component<React.PropsWithChildren, ErrorBoundaryState> {',
+              'class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {'
+          )
+          p.write_text(s)
+
+          p = Path('components/ShoppingListItem.tsx')
+          s = p.read_text()
+          s = s.replace(
+              "        const updatedItem = {\n            ...item,\n            name: name.trim(),\n            quantity: quantity,\n            unit: unit === Unit.LAINNYA ? customUnit.trim() : unit,",
+              "        const parsedQty = quantityStr.trim() === '' ? null : parseFloat(quantityStr);\n        const updatedItem = {\n            ...item,\n            name: name.trim(),\n            quantity: parsedQty !== null && !isNaN(parsedQty) && parsedQty > 0 ? parsedQty : null,\n            unit: unit === Unit.LAINNYA ? customUnit.trim() : unit,"
+          )
+          p.write_text(s)
+
+          p = Path('components/VoiceInputModal.tsx')
+          s = p.read_text()
+          old = """// Check speech recognition support
+          const getSpeechRecognitionClass = () => {
+            if (typeof window === 'undefined') return null;
+            const win = window as unknown as {
+              SpeechRecognition?: typeof window.SpeechRecognition;
+              webkitSpeechRecognition?: typeof window.SpeechRecognition;
+            };
+            return win.SpeechRecognition || win.webkitSpeechRecognition || null;
+          };
+          """
+          new = """type SpeechRecognitionConstructor = new () => {
+            continuous: boolean;
+            interimResults: boolean;
+            lang: string;
+            onstart: (() => void) | null;
+            onresult: ((event: any) => void) | null;
+            onerror: ((event: any) => void) | null;
+            onend: (() => void) | null;
+            start: () => void;
+            stop: () => void;
+          };
+
+          // Check speech recognition support without requiring non-standard DOM typings.
+          const getSpeechRecognitionClass = (): SpeechRecognitionConstructor | null => {
+            if (typeof window === 'undefined') return null;
+            const win = window as typeof window & {
+              SpeechRecognition?: SpeechRecognitionConstructor;
+              webkitSpeechRecognition?: SpeechRecognitionConstructor;
+            };
+            return win.SpeechRecognition || win.webkitSpeechRecognition || null;
+          };
+          """
+          s = s.replace(old, new)
+          p.write_text(s)
+
+          p = Path('types.ts')
+          s = p.read_text().replace("  IKAT = 'ikat',\n", "  IKAT = 'ikat',\n  BATANG = 'batang',\n")
+          p.write_text(s)
+
+          p = Path('constants.ts')
+          s = p.read_text().replace('  Unit.IKAT,\n', '  Unit.IKAT,\n  Unit.BATANG,\n')
+          p.write_text(s)
+
+          p = Path('constants/recipes.ts')
+          p.write_text(p.read_text().replace('unit: Unit.BATANG || Unit.BUAH', 'unit: Unit.BATANG'))
+
+          p = Path('utils/textParser.ts')
+          s = p.read_text().replace('  defaultUnit: Unit;\n} | null {\n', '  defaultUnit: Unit | string;\n} | null {\n', 1)
+          p.write_text(s)
+          PY
+
       - name: Validate source structure
         run: |
           set -euo pipefail
@@ -50,8 +136,8 @@ jobs:
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
+      - name: Install dependencies and refresh lockfile
+        run: bun install
 
       - name: Type check
         run: bun run typecheck
