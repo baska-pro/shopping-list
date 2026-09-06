@@ -1,5 +1,8 @@
 /**
- * Supabase Multi-Device Sync Service
+ * Supabase multi-device sync service.
+ *
+ * Direct table access is intentionally avoided. The database exposes two RPC
+ * functions only, while room keys are hashed in the browser before transit.
  */
 
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
@@ -26,48 +29,53 @@ export function getSupabaseClient(url: string, anonKey: string): SupabaseClient 
   return client;
 }
 
+async function hashRoomKey(roomKey: string): Promise<string> {
+  const clean = roomKey.trim();
+  if (clean.length < 12) {
+    throw new Error('Room Key minimal 12 karakter agar lebih sulit ditebak.');
+  }
+
+  const bytes = new TextEncoder().encode(clean);
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest))
+    .map(value => value.toString(16).padStart(2, '0'))
+    .join('');
+}
+
 export async function testSupabaseConnection(
   url: string,
   anonKey: string,
-  tableName: string = 'shopping_sync'
+  _tableName: string = 'shopping_sync'
 ): Promise<{ success: boolean; message: string }> {
-  if (!url || !url.trim()) {
+  if (!url?.trim()) {
     return { success: false, message: 'URL Supabase belum diisi.' };
   }
-  if (!anonKey || !anonKey.trim()) {
+  if (!anonKey?.trim()) {
     return { success: false, message: 'Supabase Anon Key belum diisi.' };
   }
 
   try {
     const supabase = getSupabaseClient(url, anonKey);
-    // Simple query to verify table and credentials
-    const { error } = await supabase
-      .from(tableName || 'shopping_sync')
-      .select('id')
-      .limit(1);
+    const healthRoom = await hashRoomKey('belanjaan-health-check');
+    const { error } = await supabase.rpc('shopping_sync_pull', {
+      p_room_id: healthRoom,
+    });
 
     if (error) {
-      // If table doesn't exist
-      if (error.code === '42P01') {
-        return {
-          success: false,
-          message: `Tabel "${tableName}" belum dibuat di Supabase. Silakan jalankan script SQL pembuatan tabel di menu SQL Editor Supabase.`
-        };
-      }
       return {
         success: false,
-        message: `Koneksi Supabase gagal: ${error.message} (Kode: ${error.code})`
+        message: `Koneksi Supabase belum siap: ${error.message}. Jalankan supabase_schema.sql terbaru di SQL Editor.`,
       };
     }
 
     return {
       success: true,
-      message: 'Berhasil terhubung ke database Supabase!'
+      message: 'Berhasil terhubung ke Supabase dengan RPC sync yang aman.',
     };
-  } catch (err: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      message: err?.message || 'Gagal menghubungi Supabase. Periksa URL dan Anon Key.'
+      message: error instanceof Error ? error.message : 'Gagal menghubungi Supabase.',
     };
   }
 }
@@ -75,35 +83,29 @@ export async function testSupabaseConnection(
 export async function pushToSupabase(
   url: string,
   anonKey: string,
-  tableName: string = 'shopping_sync',
+  _tableName: string = 'shopping_sync',
   roomKey: string,
   payload: SyncPayload
 ): Promise<{ success: boolean; message: string }> {
   try {
     const supabase = getSupabaseClient(url, anonKey);
-    const tbl = tableName || 'shopping_sync';
-    const cleanRoomKey = roomKey.trim();
+    const roomId = await hashRoomKey(roomKey);
 
-    const { error } = await supabase
-      .from(tbl)
-      .upsert({
-        id: cleanRoomKey,
-        updated_at: new Date().toISOString(),
-        payload: payload,
-      }, { onConflict: 'id' });
+    const { error } = await supabase.rpc('shopping_sync_push', {
+      p_room_id: roomId,
+      p_payload: payload,
+    });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
     return {
       success: true,
-      message: 'Data berhasil disinkronkan ke Supabase!'
+      message: 'Data berhasil disinkronkan ke Supabase.',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
-      message: error?.message || 'Gagal menyimpan data ke Supabase.'
+      message: error instanceof Error ? error.message : 'Gagal menyimpan data ke Supabase.',
     };
   }
 }
@@ -111,42 +113,37 @@ export async function pushToSupabase(
 export async function pullFromSupabase(
   url: string,
   anonKey: string,
-  tableName: string = 'shopping_sync',
+  _tableName: string = 'shopping_sync',
   roomKey: string
 ): Promise<{ success: boolean; data?: SyncPayload | null; message: string }> {
   try {
     const supabase = getSupabaseClient(url, anonKey);
-    const tbl = tableName || 'shopping_sync';
-    const cleanRoomKey = roomKey.trim();
+    const roomId = await hashRoomKey(roomKey);
 
-    const { data, error } = await supabase
-      .from(tbl)
-      .select('payload, updated_at')
-      .eq('id', cleanRoomKey)
-      .maybeSingle();
+    const { data, error } = await supabase.rpc('shopping_sync_pull', {
+      p_room_id: roomId,
+    });
 
-    if (error) {
-      throw error;
-    }
+    if (error) throw error;
 
-    if (!data || !data.payload) {
+    if (!data) {
       return {
         success: true,
         data: null,
-        message: 'Belum ada data tersimpan di Supabase untuk Room ID ini.'
+        message: 'Belum ada data tersimpan untuk Room Key ini.',
       };
     }
 
     return {
       success: true,
-      data: data.payload as SyncPayload,
-      message: 'Data berhasil dimuat dari Supabase.'
+      data: data as SyncPayload,
+      message: 'Data berhasil dimuat dari Supabase.',
     };
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       success: false,
       data: null,
-      message: error?.message || 'Gagal mengambil data dari Supabase.'
+      message: error instanceof Error ? error.message : 'Gagal mengambil data dari Supabase.',
     };
   }
 }
