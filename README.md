@@ -8,6 +8,22 @@
 
 **Belanjaan** adalah aplikasi daftar belanja berbasis React + TypeScript dengan pendekatan offline-first. Aplikasi mendukung daftar belanja aktif, checklist saat berbelanja, riwayat harga, resep Nusantara, input suara, berbagi WhatsApp, serta sinkronisasi opsional melalui Google Sheets atau Supabase.
 
+<p align="center">
+  <img src="assets/screenshoot/dashboard.jpg" alt="Dashboard Belanjaan" width="860">
+</p>
+
+## Tampilan Aplikasi
+
+| Dashboard | Checklist Belanja |
+| --- | --- |
+| ![Dashboard Belanjaan](assets/screenshoot/dashboard.jpg) | ![Checklist Belanja](assets/screenshoot/checklist.jpg) |
+
+| Pilih Bahan | Katalog Resep |
+| --- | --- |
+| ![Pilih Bahan](assets/screenshoot/pilih_bahan.jpg) | ![Katalog Resep](assets/screenshoot/resep.jpg) |
+
+Semua media resmi aplikasi disimpan di [`assets/screenshoot/`](assets/screenshoot/).
+
 ## Fitur
 
 - daftar belanja responsif untuk desktop dan mobile;
@@ -22,26 +38,6 @@
 - PWA dan dukungan offline;
 - sinkronisasi multi-perangkat melalui Google Apps Script atau Supabase;
 - penyimpanan lokal tanpa akun sebagai mode default.
-
-## Screenshot
-
-Tangkapan layar web app disimpan di:
-
-```text
-assets/screenshoot/
-```
-
-Gunakan nama yang konsisten, misalnya:
-
-```text
-home-mobile.png
-home-desktop.png
-shopping-mode-mobile.png
-recipes-mobile.png
-cloud-sync.png
-```
-
-Jangan memasukkan token, URL privat, Room Key, identitas akun, atau data pribadi ke screenshot.
 
 ## Teknologi
 
@@ -125,6 +121,10 @@ Konfigurasi cloud juga dapat disimpan langsung dari UI aplikasi.
 shopping-list/
 ├── assets/
 │   └── screenshoot/
+│       ├── dashboard.jpg
+│       ├── checklist.jpg
+│       ├── pilih_bahan.jpg
+│       └── resep.jpg
 ├── components/
 ├── constants/
 ├── services/
