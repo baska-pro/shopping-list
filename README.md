@@ -1,3 +1,9 @@
+<!-- repo-banner:start -->
+<p align="center">
+  <img src="./assets/banner.svg" alt="Shopping List Banner" width="100%">
+</p>
+<!-- repo-banner:end -->
+
 # Belanjaan / Shopping List
 
 [![CI](https://github.com/baska-pro/shopping-list/actions/workflows/ci.yml/badge.svg)](https://github.com/baska-pro/shopping-list/actions/workflows/ci.yml)
